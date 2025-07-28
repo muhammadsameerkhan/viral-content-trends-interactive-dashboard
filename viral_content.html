@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Content Trends Interactive Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The SPA is structured as an interactive dashboard. A sticky top navigation allows users to jump between four main sections: 1) A high-level 'Overview' with key viral elements and a comparative chart of themes, 2) a 'TikTok Trends' deep-dive, 3) a 'YouTube Trends' deep-dive, and 4) actionable 'AI Content Ideas'. The TikTok and YouTube sections use an interactive tab system, allowing users to select a specific emotional theme (e.g., 'Heartbreak Recovery'). This dynamically updates the displayed content and a dedicated chart, making the dense information from the report digestible and explorable. This structure was chosen to transform the linear report into a non-linear, user-driven exploration tool, prioritizing usability and data synthesis over simply replicating the report's layout. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Overall theme popularity. -> Goal: Compare. -> Viz: Polar Area Chart. -> Interaction: Hover tooltips. -> Justification: Provides a quick, visually engaging overview of which themes are most prominent. -> Library: Chart.js.
+        - Report Info: Engagement data (views/likes) for specific videos within a theme. -> Goal: Compare. -> Viz: Horizontal Bar Chart. -> Interaction: Dynamically updated on tab click, hover tooltips. -> Justification: Clearly shows performance differences between example videos, making it easy to identify top performers. -> Library: Chart.js.
+        - Report Info: Key findings and content elements. -> Goal: Inform. -> Presentation: Styled cards with icons and concise text. -> Interaction: Revealed based on tab selection. -> Justification: Breaks down text-heavy analysis into scannable, visually appealing components. -> Method: HTML/Tailwind.
+        - Report Info: Actionable AI content ideas. -> Goal: Organize & Inform. -> Presentation: Accordion component. -> Interaction: Click to expand/collapse. -> Justification: Organizes a large number of ideas into a compact, user-controlled interface, preventing information overload. -> Method: HTML/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #2c3e50;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link.active {
+            color: #2E86AB;
+            border-bottom-color: #2E86AB;
+        }
+        .tab-button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .tab-button.active {
+            background-color: #2E86AB;
+            color: #FFFFFF;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-[#2E86AB]">Viral Trends Dashboard</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#overview" class="nav-link text-gray-600 hover:text-[#2E86AB] border-b-2 border-transparent pb-1">Overview</a>
+                <a href="#tiktok" class="nav-link text-gray-600 hover:text-[#2E86AB] border-b-2 border-transparent pb-1">TikTok Trends</a>
+                <a href="#youtube" class="nav-link text-gray-600 hover:text-[#2E86AB] border-b-2 border-transparent pb-1">YouTube Trends</a>
+                <a href="#ideas" class="nav-link text-gray-600 hover:text-[#2E86AB] border-b-2 border-transparent pb-1">AI Content Ideas</a>
+            </div>
+            <div class="md:hidden">
+                <select id="mobile-nav" class="bg-gray-200 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#2E86AB] focus:border-[#2E86AB] block w-full p-2.5">
+                    <option value="#overview">Overview</option>
+                    <option value="#tiktok">TikTok Trends</option>
+                    <option value="#youtube">YouTube Trends</option>
+                    <option value="#ideas">AI Content Ideas</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+
+        <!-- Overview Section -->
+        <section id="overview" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-4">Navigating the Emotional Currents</h2>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-12">An analysis of viral content on TikTok and YouTube Shorts reveals that success is driven by authenticity, emotional resonance, and strategic storytelling. This dashboard interactively explores these trends to inform the creation of compelling AI-animated content.</p>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 text-center">Core Viral Elements</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start"><span class="text-xl mr-3 text-[#2E86AB]"> authenticity & relatability </span><span class="text-gray-600">Content that feels genuine and mirrors common human experiences fosters deep connection and validation.</span></li>
+                        <li class="flex items-start"><span class="text-xl mr-3 text-[#2E86AB]"> emotional arc </span><span class="text-gray-600">Even short videos benefit from a narrative journey, like pain to healing, which captivates and retains attention.</span></li>
+                        <li class="flex items-start"><span class="text-xl mr-3 text-[#2E86AB]"> strategic audio </span><span class="text-gray-600">Trending sounds, emotional music, and impactful voiceovers are critical for setting the mood and boosting discoverability.</span></li>
+                        <li class="flex items-start"><span class="text-xl mr-3 text-[#2E86AB]"> visual metaphors </span><span class="text-gray-600">Abstract visuals make complex internal states like overthinking tangible, relatable, and highly shareable.</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-center">Viral Theme Prominence</h3>
+                    <div class="chart-container">
+                        <canvas id="overviewChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TikTok Trends Section -->
+        <section id="tiktok" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2">TikTok Viral Trends Analysis</h2>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-8">TikTok's algorithm favors high-engagement content. This section dissects the emotional themes that consistently capture audience attention, driving likes, comments, and shares.</p>
+            
+            <div id="tiktok-tabs" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+            
+            <div id="tiktok-content" class="grid md:grid-cols-5 gap-8 bg-white p-6 rounded-xl shadow-lg min-h-[450px]">
+                <div class="md:col-span-2">
+                    <h3 id="tiktok-title" class="text-2xl font-bold mb-4"></h3>
+                    <p id="tiktok-summary" class="text-gray-600 mb-6"></p>
+                    <h4 class="font-bold mb-2">Key Content Elements:</h4>
+                    <ul id="tiktok-elements" class="list-disc list-inside text-gray-600 space-y-2"></ul>
+                </div>
+                <div class="md:col-span-3 flex items-center justify-center">
+                    <div class="chart-container w-full h-full">
+                        <canvas id="tiktokChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- YouTube Trends Section -->
+        <section id="youtube" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2">YouTube Shorts Viral Trends</h2>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-8">YouTube Shorts thrives on delivering concise value and powerful narratives. Here, we analyze the themes that resonate most with its audience, from practical advice to poignant animated stories.</p>
+
+            <div id="youtube-tabs" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+
+            <div id="youtube-content" class="grid md:grid-cols-5 gap-8 bg-white p-6 rounded-xl shadow-lg min-h-[450px]">
+                 <div class="md:col-span-2">
+                    <h3 id="youtube-title" class="text-2xl font-bold mb-4"></h3>
+                    <p id="youtube-summary" class="text-gray-600 mb-6"></p>
+                    <h4 class="font-bold mb-2">Key Content Elements:</h4>
+                    <ul id="youtube-elements" class="list-disc list-inside text-gray-600 space-y-2"></ul>
+                </div>
+                <div class="md:col-span-3 flex items-center justify-center">
+                    <div class="chart-container w-full h-full">
+                        <canvas id="youtubeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Content Ideas Section -->
+        <section id="ideas" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2">Actionable AI Content Ideas</h2>
+            <p class="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-8">Translate these viral trends into compelling AI-animated videos for TikTok. Here are specific, actionable concepts designed to leverage AI's unique creative capabilities.</p>
+            
+            <div id="accordion" class="space-y-4 max-w-4xl mx-auto"></div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-6 mt-12 text-gray-500">
+        <p>Interactive Report generated from Source Material. All data and insights are derived from the provided report.</p>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const appData = {
+        tiktok: {
+            'Heartbreak Recovery': {
+                summary: "This niche thrives on authentic, personal narratives of resilience. Virality is driven by fostering deep engagement through shared vulnerability, making viewers feel seen and understood.",
+                elements: ["Clear narrative arc (devastation to strength)", "Messages of self-respect and empowerment", "Supportive community in comments", "Use of 'heartbreak anthems'"],
+                chartData: {
+                    labels: ['@kobirana1', '@emotions.in.life', '@awomancalledgeorge'],
+                    datasets: [{
+                        label: 'Likes',
+                        data: [30200, 4176, 263],
+                        backgroundColor: '#2E86AB',
+                    }]
+                }
+            },
+            'Visualizing Overthinking': {
+                summary: "Content that visually captures the chaotic, fluctuating nature of internal thought processes has massive viral potential. Making the invisible visible creates immediate relatability.",
+                elements: ["Visual metaphors for thoughts (spirals, clouds)", "Depiction of rapid emotional shifts", "Relatable scenarios and internal monologues", "Focus on mental health and coping"],
+                chartData: {
+                    labels: ['@ilonamaher', '@lizpopart', '@thetonyrhee'],
+                    datasets: [{
+                        label: 'Likes',
+                        data: [1000000, 53300, 16900],
+                        backgroundColor: '#2E86AB',
+                    }]
+                }
+            },
+            'Dark Truths of Life': {
+                summary: "This content succeeds when it frames harsh realities within a context of empowerment and growth. The key is to acknowledge challenges and then offer a path toward resilience.",
+                elements: ["Impactful, inspirational quotes", "Acknowledging universal struggles", "Positive framing (problem to solution)", "Ethical focus on resilience, not despair"],
+                chartData: {
+                    labels: ['@nathanleeallen'],
+                    datasets: [{
+                        label: 'Views',
+                        data: [554400],
+                        backgroundColor: '#2E86AB',
+                    }, {
+                        label: 'Likes',
+                        data: [121200],
+                        backgroundColor: '#A5D8DD',
+                    }]
+                }
+            },
+            'Emotional Animation': {
+                summary: "The demand is for raw, authentic emotion, often seen in real-life footage. For animation, the challenge is to replicate this depth through expressive characters and universal stories.",
+                elements: ["Focus on intense emotional moments", "Universal experiences (reunions, loss, kindness)", "Strong, emotive audio", "Highly expressive character animation"],
+                chartData: {
+                    labels: ['@miracle_moms (Pain)', '@nkzlckvm (Reunions)', '@jeffreyjkieffer (Ocean)', '@valedelcid (Struggle)', '@saraecheagaray (Acting)'],
+                    datasets: [{
+                        label: 'Views (in Millions)',
+                        data: [75.2, 33.6, 32.4, 29.3, 10.2],
+                        backgroundColor: '#2E86AB',
+                    }]
+                }
+            },
+            'Satisfying Emotional Reels': {
+                summary: "A powerful synergy of emotionally nostalgic audio and visually calming aesthetics. This dual appeal provides an immersive escape, encouraging high rewatchability.",
+                elements: ["Deeply emotional or nostalgic music", "Relaxing, satisfying visuals (loops, ASMR)", "Focus on comfort and warmth", "Short, rewatchable format"],
+                chartData: {
+                    labels: ['@khoaiart_ringtone_balls'],
+                    datasets: [{
+                        label: 'Views',
+                        data: [3800000],
+                        backgroundColor: '#2E86AB',
+                    }, {
+                        label: 'Likes',
+                        data: [2600000],
+                        backgroundColor: '#A5D8DD',
+                    }]
+                }
+            }
+        },
+        youtube: {
+            'Heartbreak Recovery': {
+                summary: "YouTube Shorts in this category focus on providing practical, actionable advice. The audience seeks concise guidance, coping mechanisms, and mindset shifts for healing.",
+                elements: ["Concise, actionable tips", "Focus on self-respect and personal growth", "Positive reframing (breakup as a blessing)", "Delivering tangible value quickly"],
+                chartData: {
+                    labels: ['Focus on Advice', 'Focus on Self-Respect', 'Focus on Empowerment'],
+                    datasets: [{
+                        label: 'Thematic Prominence (Conceptual)',
+                        data: [90, 85, 80],
+                        backgroundColor: '#F26419',
+                    }]
+                }
+            },
+            'Emotional Animation': {
+                summary: "Animated memes and concise, impactful narratives show strong viral potential. Animation allows for exaggerated expression and visual metaphors that are highly shareable.",
+                elements: ["Relatable animated memes", "Concise, emotionally driven narratives", "Stories that transcend language barriers", "Use of trending audio with animation"],
+                chartData: {
+                    labels: ['@Cartoonimation (Meme)', 'Sad Compilations (Concept)', 'Acclaimed Shorts (Concept)'],
+                    datasets: [{
+                        label: 'Views (in Millions)',
+                        data: [7.1, 5, 3],
+                        backgroundColor: '#F26419',
+                    }]
+                }
+            },
+            'Dark Quotes': {
+                summary: "This genre blends relatable struggle with aspirational empowerment. It validates adversity while providing a powerful call to action, resonating with those seeking strength.",
+                elements: ["Philosophical 'dark truths'", "Metaphors of strength (lion, diamond)", "Visually striking text and typography", "Atmospheric backgrounds and audio"],
+                chartData: {
+                    labels: ['Motivational', 'Philosophical', 'Poetic/Defiant'],
+                    datasets: [{
+                        label: 'Genre Popularity (Conceptual)',
+                        data: [95, 75, 80],
+                        backgroundColor: '#F26419',
+                    }]
+                }
+            },
+            'Motivation & Healing': {
+                summary: "Content from perceived experts (doctors, therapists) gains significant traction. Viewers seek credible, trustworthy advice and quick, actionable 'hacks' for mental well-being.",
+                elements: ["Content from credible experts", "Quick, actionable mental health 'hacks'", "Focus on self-compassion and overcoming doubt", "Building trust with an engaged audience"],
+                chartData: {
+                    labels: ['@motivationaldoc (Top Shorts Avg)', 'Team Fearless (Concept)', '@depressiontoexpression (Concept)'],
+                    datasets: [{
+                        label: 'Engagement Score (Subscribers + Views)',
+                        data: [90, 85, 70],
+                        backgroundColor: '#F26419',
+                    }]
+                }
+            }
+        },
+        aiIdeas: {
+            'Heartbreak Recovery': [
+                { title: 'Healing Journey Metaphors', description: 'An abstract shape moves through a desolate landscape that slowly transforms into a vibrant, flourishing environment, symbolizing recovery.' },
+                { title: 'The Unsent Message', description: 'Animated text messages appear and dissolve, representing unspoken words, culminating in a powerful message of self-worth.' },
+                { title: 'Anthem Visualizer', description: 'Generative abstract visuals pulse and evolve in sync with a trending heartbreak recovery song for a cathartic experience.' }
+            ],
+            'Visualizing Overthinking': [
+                { title: 'The Thought Spiral', description: 'A complex vortex of thoughts and emotions visually untangles into a clear, calm, and open space.' },
+                { title: 'Emotional Weather Report', description: 'A character experiences rapid shifts in "weather" (stormy, sunny, cloudy) to represent fluctuating emotions.' },
+                { title: 'Mind Palace Declutter', description: 'A tour through a chaotic "mind palace" where clutter is organized and transformed into peaceful, minimalist spaces.' }
+            ],
+            'Dark Truths of Life': [
+                { title: 'The Unseen Battle', description: 'A character faces an invisible struggle (a shadow, a burden), with a powerful quote appearing, followed by a small act of defiance.' },
+                { title: 'Paradoxical Wisdom', description: 'Visuals illustrating a "dark truth" leading to a positive outcome, like a seed growing in barren ground, paired with a stoic quote.' },
+                { title: 'The Mirror of Reality', description: 'Realistic animated scenes of unspoken struggles (loneliness, pressure) with a reflective voiceover offering a path to acceptance.' }
+            ],
+            'Emotional Animation': [
+                { title: 'Universal Emotional Reactions', description: 'Short, memeable loops of diverse characters reacting to universal triggers like kindness, loss, or triumph.' },
+                { title: '"Inside Out" Micro-Scenarios', description: 'Personified emotions (Anxiety, Joy) interact in a simple, relatable scenario, highlighting internal conflicts.' },
+                { title: 'Abstract Emotional Landscapes', description: 'Generative, evolving landscapes that visually represent the flow and intensity of different emotions through color and motion.' }
+            ],
+            'Satisfying Emotional Reel': [
+                { title: 'Perfect Loop Emotional Journeys', description: 'Seamless loops of satisfying actions (paint mixing, sand falling) synchronized with emotional, nostalgic music.' },
+                { title: 'ASMR Visuals with Emotional Resonance', description: 'Hyper-detailed animations mimicking ASMR triggers (slow movements, gentle textures) paired with a calming soundtrack.' },
+                { title: 'Nature\'s Emotional Calm', description: 'Serene animated nature scenes (gentle rain, flowing river) that subtly shift to reflect different emotional states.' }
+            ]
+        }
+    };
+
+    let tiktokChart, youtubeChart;
+
+    const setupTabs = (platform) => {
+        const tabsContainer = document.getElementById(`${platform}-tabs`);
+        const themes = Object.keys(appData[platform]);
+        tabsContainer.innerHTML = themes.map(theme => `
+            <button class="tab-button text-sm md:text-base px-4 py-2 rounded-full bg-gray-200 text-gray-700" data-platform="${platform}" data-theme="${theme}">${theme}</button>
+        `).join('');
+
+        tabsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab-button')) {
+                const platform = e.target.dataset.platform;
+                const theme = e.target.dataset.theme;
+                updateContent(platform, theme);
+
+                document.querySelectorAll(`#${platform}-tabs .tab-button`).forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+            }
+        });
+
+        // Use firstElementChild to ensure we are clicking an actual element node
+        if (tabsContainer.firstElementChild) {
+            tabsContainer.firstElementChild.click();
+        }
+    };
+
+    const updateContent = (platform, theme) => {
+        const data = appData[platform][theme];
+        document.getElementById(`${platform}-title`).textContent = theme;
+        document.getElementById(`${platform}-summary`).textContent = data.summary;
+        const elementsList = document.getElementById(`${platform}-elements`);
+        elementsList.innerHTML = data.elements.map(el => `<li>${el}</li>`).join('');
+        
+        const chartConfig = {
+            type: 'bar',
+            data: data.chartData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: data.chartData.datasets.length > 1,
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.x !== null) {
+                                    label += new Intl.NumberFormat('en-US').format(context.parsed.x);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) return value / 1000000 + 'M';
+                                if (value >= 1000) return value / 1000 + 'K';
+                                return value;
+                            }
+                        }
+                    },
+                    y: {
+                        ticks: {
+                           autoSkip: false,
+                           callback: function(value) {
+                                const label = this.getLabelForValue(value);
+                                return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                           }
+                        }
+                    }
+                }
+            }
+        };
+
+        if (platform === 'tiktok') {
+            if (tiktokChart) tiktokChart.destroy();
+            tiktokChart = new Chart(document.getElementById('tiktokChart'), chartConfig);
+        } else {
+            if (youtubeChart) youtubeChart.destroy();
+            youtubeChart = new Chart(document.getElementById('youtubeChart'), chartConfig);
+        }
+    };
+
+    const setupAccordion = () => {
+        const accordionContainer = document.getElementById('accordion');
+        const themes = Object.keys(appData.aiIdeas);
+        accordionContainer.innerHTML = themes.map((theme, index) => `
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <button class="accordion-button w-full text-left p-4 font-bold text-lg flex justify-between items-center" data-index="${index}">
+                    <span>${theme}</span>
+                    <span class="transform transition-transform duration-300">▼</span>
+                </button>
+                <div class="accordion-content px-4">
+                    <div class="py-4 space-y-4">
+                        ${appData.aiIdeas[theme].map(idea => `
+                            <div class="border-l-4 border-[#2E86AB] pl-4">
+                                <h5 class="font-semibold">${idea.title}</h5>
+                                <p class="text-gray-600">${idea.description}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        accordionContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('.accordion-button');
+            if (button) {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('span:last-child');
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
+                    document.querySelectorAll('.accordion-button span:last-child').forEach(i => i.style.transform = 'rotate(0deg)');
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            }
+        });
+    };
+
+    const setupOverviewChart = () => {
+        new Chart(document.getElementById('overviewChart'), {
+            type: 'polarArea',
+            data: {
+                labels: ['Heartbreak', 'Overthinking', 'Dark Truths', 'Emotional', 'Satisfying'],
+                datasets: [{
+                    label: 'Viral Theme Prominence',
+                    data: [8, 9, 7, 10, 8],
+                    backgroundColor: [
+                        'rgba(46, 134, 171, 0.7)',
+                        'rgba(242, 100, 25, 0.7)',
+                        'rgba(88, 82, 110, 0.7)',
+                        'rgba(165, 216, 221, 0.7)',
+                        'rgba(255, 183, 104, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                 plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                },
+                scales: {
+                    r: {
+                        ticks: { display: false },
+                        grid: { circular: true }
+                    }
+                }
+            }
+        });
+    };
+    
+    const setupNav = () => {
+        const links = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('main section');
+        const mobileNav = document.getElementById('mobile-nav');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    links.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+                    });
+                    mobileNav.value = `#${id}`;
+                }
+            });
+        }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+
+        sections.forEach(section => observer.observe(section));
+
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector(link.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        mobileNav.addEventListener('change', (e) => {
+            document.querySelector(e.target.value).scrollIntoView({ behavior: 'smooth' });
+        });
+    };
+
+    setupTabs('tiktok');
+    setupTabs('youtube');
+    setupAccordion();
+    setupOverviewChart();
+    setupNav();
+});
+</script>
+
+</body>
+</html>
